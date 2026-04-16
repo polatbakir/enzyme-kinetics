@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIO310 — Enzyme Kinetics Lab · Catalase / H₂O₂</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+/* ═══════════════════ CSS RESET & VARIABLES ═══════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F172A;--card:#1E293B;--input-bg:#0F172A;--accent:#6366F1;
+  --green:#10B981;--red:#EF4444;--yellow:#F59E0B;--text:#F1F5F9;
+  --text-dim:#94A3B8;--border:#334155;--chart-bg:#1E293B;
+  --hover:#2D3A4F;--radius:8px;--shadow:0 4px 24px rgba(0,0,0,.4);
+  --c1:#3B82F6;--c2:#EF4444;--c3:#10B981;--c4:#F59E0B;
+}
+[data-theme="light"]{
+  --bg:#F1F5F9;--card:#FFFFFF;--input-bg:#F8FAFC;--text:#0F172A;
+  --text-dim:#64748B;--border:#CBD5E1;--chart-bg:#FFFFFF;
+  --hover:#E2E8F0;--shadow:0 4px 24px rgba(0,0,0,.08);
+}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+a{color:var(--accent);text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+input,select{font-family:inherit}
+
+/* ═══════════════════ TOP NAV ═══════════════════ */
+.top-nav{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1rem;height:56px;gap:.5rem;box-shadow:var(--shadow);transition:background .3s}
+.nav-brand{font-weight:700;font-size:1.1rem;white-space:nowrap;display:flex;align-items:center;gap:.4rem}
+.nav-brand span{color:var(--accent)}
+.nav-tabs{display:flex;gap:0;margin-left:1.5rem;height:100%}
+.nav-tab{background:none;border:none;color:var(--text-dim);font-size:.9rem;padding:0 1rem;height:100%;display:flex;align-items:center;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.nav-tab:hover{color:var(--text);background:var(--hover)}
+.nav-tab.active{color:var(--accent);font-weight:700;border-bottom-color:var(--accent)}
+.nav-spacer{flex:1}
+.nav-actions{display:flex;gap:.3rem;align-items:center}
+.nav-btn{background:none;border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:.4rem .7rem;font-size:.82rem;display:flex;align-items:center;gap:.3rem;transition:all .2s;white-space:nowrap}
+.nav-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ═══════════════════ SECTIONS ═══════════════════ */
+.section{display:none;padding:1rem;animation:fadeIn .3s}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-header{margin-bottom:1rem}
+.section-header h2{font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
+.section-header p{color:var(--text-dim);font-size:.85rem;margin-top:.25rem}
+.badge{display:inline-block;background:var(--accent);color:#fff;font-size:.7rem;padding:2px 8px;border-radius:12px;font-weight:600}
+
+.two-col{display:grid;grid-template-columns:minmax(320px,2fr) minmax(400px,3fr);gap:1rem;align-items:start}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+/* ═══════════════════ CARDS ═══════════════════ */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;transition:background .3s,border .3s}
+.card-title{font-size:.9rem;font-weight:600;margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem}
+
+/* ═══════════════════ DATA TABLE ═══════════════════ */
+.table-actions{display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
+.btn{padding:.4rem .8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#4F46E5}
+.btn-danger{border-color:var(--red);color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table th{background:var(--bg);color:var(--text-dim);font-weight:600;padding:.45rem .3rem;text-align:center;border:1px solid var(--border);position:sticky;top:0;white-space:nowrap}
+.data-table td{padding:0;border:1px solid var(--border)}
+.data-table td input{width:100%;background:transparent;border:none;color:var(--text);text-align:center;padding:.45rem .3rem;font-size:.82rem;font-family:'Courier New',monospace;outline:none;transition:background .15s}
+.data-table td input:focus{background:rgba(99,102,241,.15);outline:2px solid var(--accent);outline-offset:-2px}
+.data-table td input.invalid{background:rgba(239,68,68,.12);outline:2px solid var(--red);outline-offset:-2px}
+.data-table td.time-cell{background:var(--bg);color:var(--text-dim);font-weight:600;text-align:center;padding:.45rem .3rem;font-family:'Courier New',monospace}
+
+/* ═══════════════════ RESULTS CARDS ═══════════════════ */
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1rem}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem;text-align:center;transition:all .3s}
+.result-card .label{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.2rem}
+.result-card .value{font-size:1.5rem;font-weight:700;font-family:'Courier New',monospace}
+.result-card .unit{font-size:.7rem;color:var(--text-dim)}
+.color-green{color:var(--green)}
+.color-yellow{color:var(--yellow)}
+.color-red{color:var(--red)}
+
+/* ═══════════════════ VELOCITY TABLE ═══════════════════ */
+.vel-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.6rem}
+.vel-table th,.vel-table td{padding:.4rem .6rem;border:1px solid var(--border);text-align:center}
+.vel-table th{background:var(--bg);color:var(--text-dim);font-weight:600}
+.vel-table .bar-cell{position:relative;min-width:80px}
+.vel-table .mini-bar{position:absolute;left:0;top:0;bottom:0;background:var(--accent);opacity:.15;border-radius:0 4px 4px 0;transition:width .5s}
+
+/* ═══════════════════ CHART WRAPPER ═══════════════════ */
+.chart-wrapper{margin-bottom:1rem;position:relative}
+.chart-container{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-height:360px}
+.chart-toolbar{display:flex;gap:.3rem;margin-top:.4rem;flex-wrap:wrap}
+.chart-toolbar .btn{font-size:.75rem;padding:.3rem .5rem}
+
+/* ═══════════════════ SETTINGS PANEL ═══════════════════ */
+.settings-toggle{position:absolute;top:.5rem;right:.5rem;z-index:10;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.3rem .5rem;font-size:.8rem;color:var(--text-dim);cursor:pointer}
+.settings-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.chart-settings{display:none;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem;margin-top:.4rem;font-size:.8rem}
+.chart-settings.open{display:block;animation:fadeIn .2s}
+.setting-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;flex-wrap:wrap}
+.setting-row label{min-width:80px;color:var(--text-dim);font-size:.75rem}
+.setting-row input[type="text"],.setting-row input[type="number"],.setting-row select{
+  flex:1;min-width:100px;background:var(--input-bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:.3rem .4rem;font-size:.78rem}
+.setting-row input[type="color"]{width:32px;height:24px;border:1px solid var(--border);border-radius:4px;padding:0;cursor:pointer;background:transparent}
+.setting-row input[type="range"]{flex:1;min-width:80px;accent-color:var(--accent)}
+.setting-row input[type="checkbox"]{accent-color:var(--accent)}
+.color-row{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.color-swatch{display:flex;align-items:center;gap:.2rem;font-size:.72rem;color:var(--text-dim)}
+
+/* ═══════════════════ MODAL ═══════════════════ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal h2{font-size:1.2rem;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem}
+.modal h3{font-size:.95rem;margin:1rem 0 .4rem;color:var(--accent)}
+.modal p,.modal li{font-size:.85rem;line-height:1.6;color:var(--text-dim)}
+.modal code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:.8rem;color:var(--accent)}
+.modal .close-btn{position:sticky;top:0;float:right;background:none;border:none;color:var(--text-dim);font-size:1.3rem;cursor:pointer;padding:.2rem}
+.modal .close-btn:hover{color:var(--red)}
+.modal table{width:100%;border-collapse:collapse;margin:.5rem 0;font-size:.8rem}
+.modal table th,.modal table td{padding:.35rem .5rem;border:1px solid var(--border);text-align:left}
+.modal table th{background:var(--bg);color:var(--text-dim)}
+.formula-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem;margin:.5rem 0;font-family:'Courier New',monospace;font-size:.85rem;color:var(--accent);overflow-x:auto}
+
+/* ═══════════════════ TOAST ═══════════════════ */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--green);color:#fff;padding:.7rem 1.2rem;border-radius:var(--radius);font-size:.85rem;z-index:300;transform:translateY(100px);opacity:0;transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ═══════════════════ SCROLLBAR ═══════════════════ */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ═══════════════════ RESPONSIVE ═══════════════════ */
+@media(max-width:640px){
+  .nav-brand{font-size:.9rem}
+  .nav-tab{font-size:.75rem;padding:0 .5rem}
+  .nav-actions .nav-btn span.hide-mobile{display:none}
+  .results-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ TOP NAVIGATION ═══════════════════ -->
+<nav class="top-nav">
+  <div class="nav-brand">🧬 <span>BIO310</span> Enzyme Kinetics</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab(0)">🔬 [Enzyme]</button>
+    <button class="nav-tab" onclick="switchTab(1)">🧪 [Substrate]</button>
+    <button class="nav-tab" onclick="switchTab(2)">⚗️ pH Effect</button>
+    <button class="nav-tab" onclick="switchTab(3)">🌡️ Temperature</button>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="toggleTheme()" title="Toggle theme">🌓</button>
+    <button class="nav-btn" onclick="copyAllResults()" title="Copy results">📋 <span class="hide-mobile">Copy</span></button>
+    <button class="nav-btn" onclick="openHelp()" title="Help">ℹ️ <span class="hide-mobile">Help</span></button>
+  </div>
+</nav>
+
+<!-- ═══════════════════ SECTION 1: ENZYME CONCENTRATION ═══════════════════ -->
+<div class="section active" id="section-0">
+  <div class="section-header">
+    <h2>🔬 Experiment 1 — Enzyme Concentration <span class="badge">Catalase Dilutions</span></h2>
+    <p>Fixed: 120 mM H₂O₂ · pH 7.0 · Room Temperature · λ = 240 nm</p>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Absorbance Data (A₂₄₀)</div>
+        <div class="table-actions">
+          <button class="btn btn-primary" onclick="loadExample(0)">📂 Load Example</button>
+          <button class="btn btn-danger" onclick="clearData(0)">🗑️ Clear All</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="table-0"></table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.8rem">
+        <div class="card-title">📈 Velocity Summary</div>
+        <div id="vel-summary-0"></div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrapper">
+        <div class="card-title">Absorbance vs Time</div>
+        <div class="chart-container" id="chart-abs-0" style="height:400px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-abs-0"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-abs-0','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-abs-0','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(0,'abs')">📊 CSV</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <div class="card-title">Velocity vs Enzyme Dilution</div>
+        <div class="chart-container" id="chart-vel-0" style="height:350px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-vel-0"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-vel-0','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-vel-0','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(0,'vel')">📊 CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SECTION 2: SUBSTRATE CONCENTRATION ═══════════════════ -->
+<div class="section" id="section-1">
+  <div class="section-header">
+    <h2>🧪 Experiment 2 — Substrate Concentration <span class="badge">Michaelis-Menten</span></h2>
+    <p>Fixed: 500× Catalase · pH 7.0 · Room Temperature · λ = 240 nm</p>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Absorbance Data (A₂₄₀)</div>
+        <div class="table-actions">
+          <button class="btn btn-primary" onclick="loadExample(1)">📂 Load Example</button>
+          <button class="btn btn-danger" onclick="clearData(1)">🗑️ Clear All</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="table-1"></table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.8rem">
+        <div class="card-title">🎯 Kinetic Parameters</div>
+        <div class="results-grid" id="kinetic-cards-1"></div>
+      </div>
+      <div class="card" style="margin-top:.8rem">
+        <div class="card-title">📈 Velocity Summary</div>
+        <div id="vel-summary-1"></div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrapper">
+        <div class="card-title">Absorbance vs Time</div>
+        <div class="chart-container" id="chart-abs-1" style="height:400px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-abs-1"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-abs-1','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-abs-1','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(1,'abs')">📊 CSV</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <div class="card-title">Michaelis-Menten Plot</div>
+        <div class="chart-container" id="chart-mm-1" style="height:400px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-mm-1"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-mm-1','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-mm-1','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(1,'mm')">📊 CSV</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <div class="card-title">Lineweaver-Burk Plot</div>
+        <div class="chart-container" id="chart-lb-1" style="height:400px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-lb-1"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-lb-1','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-lb-1','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(1,'lb')">📊 CSV</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <div class="card-title">Velocity vs [Substrate]</div>
+        <div class="chart-container" id="chart-vel-1" style="height:350px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-vel-1"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-vel-1','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-vel-1','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(1,'vel')">📊 CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SECTION 3: pH EFFECT ═══════════════════ -->
+<div class="section" id="section-2">
+  <div class="section-header">
+    <h2>⚗️ Experiment 3 — pH Effect <span class="badge">Acid / Neutral / Base</span></h2>
+    <p>Fixed: 500× Catalase · 120 mM H₂O₂ · Room Temperature · λ = 240 nm</p>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Absorbance Data (A₂₄₀)</div>
+        <div class="table-actions">
+          <button class="btn btn-primary" onclick="loadExample(2)">📂 Load Example</button>
+          <button class="btn btn-danger" onclick="clearData(2)">🗑️ Clear All</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="table-2"></table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.8rem">
+        <div class="card-title">📈 Velocity Summary</div>
+        <div id="vel-summary-2"></div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrapper">
+        <div class="card-title">Absorbance vs Time</div>
+        <div class="chart-container" id="chart-abs-2" style="height:400px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-abs-2"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-abs-2','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-abs-2','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(2,'abs')">📊 CSV</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <div class="card-title">Velocity vs pH</div>
+        <div class="chart-container" id="chart-vel-2" style="height:350px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-vel-2"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-vel-2','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-vel-2','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(2,'vel')">📊 CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SECTION 4: TEMPERATURE ═══════════════════ -->
+<div class="section" id="section-3">
+  <div class="section-header">
+    <h2>🌡️ Experiment 4 — Temperature Effect <span class="badge">Thermal Profile</span></h2>
+    <p>Fixed: 500× Catalase · 120 mM H₂O₂ · pH 7.0 · λ = 240 nm</p>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Absorbance Data (A₂₄₀)</div>
+        <div class="table-actions">
+          <button class="btn btn-primary" onclick="loadExample(3)">📂 Load Example</button>
+          <button class="btn btn-danger" onclick="clearData(3)">🗑️ Clear All</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="table-3"></table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.8rem">
+        <div class="card-title">📈 Velocity Summary</div>
+        <div id="vel-summary-3"></div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrapper">
+        <div class="card-title">Absorbance vs Time</div>
+        <div class="chart-container" id="chart-abs-3" style="height:400px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-abs-3"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-abs-3','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-abs-3','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(3,'abs')">📊 CSV</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <div class="card-title">Velocity vs Temperature</div>
+        <div class="chart-container" id="chart-vel-3" style="height:350px"></div>
+        <button class="settings-toggle" onclick="toggleSettings(this)">⚙️ Settings</button>
+        <div class="chart-settings" id="settings-vel-3"></div>
+        <div class="chart-toolbar">
+          <button class="btn" onclick="exportChart('chart-vel-3','png')">📷 PNG</button>
+          <button class="btn" onclick="exportChart('chart-vel-3','svg')">🖼️ SVG</button>
+          <button class="btn" onclick="exportCSV(3,'vel')">📊 CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ HELP MODAL ═══════════════════ -->
+<div class="modal-overlay" id="help-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeHelp()">✕</button>
+    <h2>ℹ️ BIO310 Enzyme Kinetics — Reference Guide</h2>
+
+    <h3>🧬 Beer-Lambert Law</h3>
+    <div class="formula-box">A = ε · l · c</div>
+    <p><strong>A</strong> = absorbance (unitless) · <strong>ε</strong> = molar absorptivity (43.6 M⁻¹cm⁻¹ for H₂O₂ at 240 nm) · <strong>l</strong> = path length (1 cm) · <strong>c</strong> = concentration (M)</p>
+    <p>Velocity conversion: v (mM/min) = v (ΔAbs/min) / (ε × l) = v (ΔAbs/min) / 0.0436</p>
+
+    <h3>📐 Michaelis-Menten Equation</h3>
+    <div class="formula-box">V = (V<sub>max</sub> · [S]) / (K<sub>m</sub> + [S])</div>
+    <ul style="padding-left:1.2rem;margin:.4rem 0">
+      <li><strong>V</strong> = reaction velocity (mM/min)</li>
+      <li><strong>V<sub>max</sub></strong> = maximum velocity at substrate saturation</li>
+      <li><strong>K<sub>m</sub></strong> = Michaelis constant — [S] at which V = V<sub>max</sub>/2</li>
+      <li><strong>[S]</strong> = substrate concentration (mM)</li>
+    </ul>
+
+    <h3>📉 Lineweaver-Burk (Double-Reciprocal)</h3>
+    <div class="formula-box">1/V = (K<sub>m</sub>/V<sub>max</sub>) · (1/[S]) + 1/V<sub>max</sub></div>
+    <p>y-intercept = 1/V<sub>max</sub> → V<sub>max</sub> = 1/y-intercept</p>
+    <p>x-intercept = −1/K<sub>m</sub> → K<sub>m</sub> = −1/x-intercept</p>
+    <p>slope = K<sub>m</sub>/V<sub>max</sub></p>
+
+    <h3>📊 How to Read K<sub>m</sub> and V<sub>max</sub></h3>
+    <p><strong>K<sub>m</sub></strong> indicates enzyme-substrate affinity. Low K<sub>m</sub> = high affinity. High K<sub>m</sub> = low affinity, needs more substrate to reach ½V<sub>max</sub>.</p>
+    <p><strong>V<sub>max</sub></strong> reflects the catalytic capacity when all active sites are saturated.</p>
+
+    <h3>⌨️ Keyboard Shortcuts</h3>
+    <table>
+      <tr><th>Key</th><th>Action</th></tr>
+      <tr><td><code>Tab</code></td><td>Move to next cell (right → next row)</td></tr>
+      <tr><td><code>Enter</code></td><td>Move down one cell</td></tr>
+      <tr><td><code>↑ ↓ ← →</code></td><td>Navigate between cells</td></tr>
+      <tr><td><code>Ctrl+V / ⌘V</code></td><td>Paste from Excel (tab-separated)</td></tr>
+      <tr><td><code>Escape</code></td><td>Close modals</td></tr>
+    </table>
+
+    <h3>💡 Tips</h3>
+    <ul style="padding-left:1.2rem">
+      <li>Double-click any chart title or axis label to edit inline</li>
+      <li>Use the modebar (right side) to zoom, pan, draw, or export</li>
+      <li>Click ⚙️ Settings to customize colors, sizes, and toggle elements</li>
+      <li>All calculations update in real-time as you type</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════ TOAST ═══════════════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   BIO310 ENZYME KINETICS LAB — COMPLETE APPLICATION
+   ═══════════════════════════════════════════════════════════════ */
+
+// ─── CONSTANTS ───
+const TIMES = [0, 20, 40, 60, 80, 100, 120];
+const EPSILON_L = 0.0436; // ε×l = 43.6 M⁻¹cm⁻¹ × 1 cm = 0.0436 mM⁻¹cm⁻¹ (converting to mM)
+const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B'];
+const GRADIENT_COLORS = [
+  ['#3B82F6','#60A5FA','#93C5FD','#BFDBFE'],
+  ['#3B82F6','#8B5CF6','#EC4899','#EF4444'],
+  ['#EF4444','#10B981','#3B82F6'],
+  ['#3B82F6','#10B981','#F59E0B','#EF4444']
+];
+
+// ─── SECTION DEFINITIONS ───
+const SECTIONS = [
+  { id: 0, name: 'Enzyme Concentration', conditions: ['100×','250×','500×','1000×'], xLabel: 'Enzyme Dilution', unit: '' },
+  { id: 1, name: 'Substrate Concentration', conditions: ['60 mM','90 mM','120 mM','150 mM'], xLabel: '[S] (mM)', unit: 'mM', sValues: [60,90,120,150] },
+  { id: 2, name: 'pH Effect', conditions: ['pH 4','pH 7','pH 10'], xLabel: 'pH', unit: '' },
+  { id: 3, name: 'Temperature Effect', conditions: ['0°C','25°C','37°C','100°C'], xLabel: 'Temperature (°C)', unit: '°C' }
+];
+
+const EXAMPLE_DATA = [
+  [[1.0029,0.9951,0.9873,0.9795,0.9717,0.9639,0.9561],[1.0286,1.0232,1.0178,1.0124,1.0070,1.0016,0.9962],[1.0483,1.0450,1.0417,1.0384,1.0351,1.0318,1.0285],[1.0610,1.0586,1.0562,1.0538,1.0514,1.0490,1.0466]],
+  [[0.3927,0.3775,0.3623,0.3471,0.3319,0.3167,0.3015],[0.7211,0.6987,0.6763,0.6539,0.6315,0.6091,0.5867],[1.0587,1.0307,1.0027,0.9747,0.9467,0.9187,0.8907],[1.3813,1.3553,1.3293,1.3033,1.2773,1.2513,1.2253]],
+  [[0.8500,0.8480,0.8462,0.8445,0.8428,0.8411,0.8394],[1.0029,0.9951,0.9873,0.9795,0.9717,0.9639,0.9561],[0.9200,0.9148,0.9096,0.9044,0.8992,0.8940,0.8888]],
+  [[1.0200,1.0188,1.0176,1.0164,1.0152,1.0140,1.0128],[1.0029,0.9951,0.9873,0.9795,0.9717,0.9639,0.9561],[1.0100,0.9998,0.9896,0.9794,0.9692,0.9590,0.9488],[0.9800,0.9793,0.9786,0.9779,0.9772,0.9765,0.9758]]
+];
+
+// ─── STATE ───
+let chartSettings = {};
+let chartInitialized = {};
+
+// ═══════════════════ MATH ENGINE ═══════════════════
+
+function linearRegression(xArr, yArr) {
+  const n = xArr.length;
+  if (n < 2) return { slope: 0, intercept: 0, r2: 0, predictY: () => 0 };
+  let sx = 0, sy = 0, sxy = 0, sx2 = 0, sy2 = 0;
+  for (let i = 0; i < n; i++) {
+    sx += xArr[i]; sy += yArr[i];
+    sxy += xArr[i] * yArr[i];
+    sx2 += xArr[i] * xArr[i];
+    sy2 += yArr[i] * yArr[i];
+  }
+  const denom = n * sx2 - sx * sx;
+  if (Math.abs(denom) < 1e-15) return { slope: 0, intercept: sy / n, r2: 0, predictY: x => sy / n };
+  const slope = (n * sxy - sx * sy) / denom;
+  const intercept = (sy - slope * sx) / n;
+  const yMean = sy / n;
+  let ssTot = 0, ssRes = 0;
+  for (let i = 0; i < n; i++) {
+    const pred = slope * xArr[i] + intercept;
+    ssRes += (yArr[i] - pred) ** 2;
+    ssTot += (yArr[i] - yMean) ** 2;
+  }
+  const r2 = ssTot === 0 ? 1 : 1 - ssRes / ssTot;
+  return { slope, intercept, r2, predictY: x => slope * x + intercept };
+}
+
+function levenbergMarquardt(xArr, vArr, initVmax, initKm, maxIter = 1000) {
+  let Vmax = initVmax || Math.max(...vArr) * 1.2;
+  let Km = initKm || xArr[Math.floor(xArr.length / 2)];
+  let lambda = 0.01;
+  const tol = 1e-10;
+  let iterations = 0;
+  let converged = false;
+
+  function residuals(vm, km) {
+    return vArr.map((v, i) => v - (vm * xArr[i]) / (km + xArr[i]));
+  }
+
+  function sumSqRes(vm, km) {
+    return residuals(vm, km).reduce((s, r) => s + r * r, 0);
+  }
+
+  let prevSSR = sumSqRes(Vmax, Km);
+
+  for (let iter = 0; iter < maxIter; iter++) {
+    iterations = iter + 1;
+    const n = xArr.length;
+    let JtJ00 = 0, JtJ01 = 0, JtJ11 = 0;
+    let JtR0 = 0, JtR1 = 0;
+
+    for (let i = 0; i < n; i++) {
+      const S = xArr[i];
+      const denom = Km + S;
+      const j0 = S / denom;                     // ∂V/∂Vmax
+      const j1 = -Vmax * S / (denom * denom);   // ∂V/∂Km
+      const r = vArr[i] - (Vmax * S) / denom;
+
+      JtJ00 += j0 * j0; JtJ01 += j0 * j1; JtJ11 += j1 * j1;
+      JtR0 += j0 * r; JtR1 += j1 * r;
+    }
+
+    // (J'J + λI) δ = J'r
+    const a00 = JtJ00 + lambda;
+    const a01 = JtJ01;
+    const a11 = JtJ11 + lambda;
+    const det = a00 * a11 - a01 * a01;
+    if (Math.abs(det) < 1e-30) break;
+
+    const dVmax = (a11 * JtR0 - a01 * JtR1) / det;
+    const dKm = (-a01 * JtR0 + a00 * JtR1) / det;
+
+    const newVmax = Vmax + dVmax;
+    const newKm = Km + dKm;
+
+    if (newVmax <= 0 || newKm <= 0) {
+      lambda *= 10;
+      continue;
+    }
+
+    const newSSR = sumSqRes(newVmax, newKm);
+    if (newSSR < prevSSR) {
+      Vmax = newVmax; Km = newKm;
+      lambda = Math.max(lambda / 10, 1e-15);
+      if (Math.abs(prevSSR - newSSR) / (prevSSR + 1e-30) < tol) { converged = true; break; }
+      prevSSR = newSSR;
+    } else {
+      lambda *= 10;
+      if (lambda > 1e15) break;
+    }
+  }
+  return { Vmax, Km, iterations, converged };
+}
+
+function calcVelocity(absorbances, times) {
+  const valid = [];
+  const validT = [];
+  for (let i = 0; i < times.length; i++) {
+    const v = parseFloat(absorbances[i]);
+    if (!isNaN(v)) { valid.push(v); validT.push(times[i]); }
+  }
+  if (valid.length < 2) return null;
+  const reg = linearRegression(validT, valid);
+  const velocityAbs = Math.abs(reg.slope) * 60;
+  const velocityMM = velocityAbs / EPSILON_L;
+  return { velocityAbs, velocityMM, slope: reg.slope, intercept: reg.intercept, r2: reg.r2, predictY: reg.predictY };
+}
+
+function sigFigs(val, n = 4) {
+  if (val === 0) return '0';
+  const d = Math.ceil(Math.log10(Math.abs(val)));
+  const pow = n - d;
+  const mag = Math.pow(10, pow);
+  return (Math.round(val * mag) / mag).toString();
+}
+
+function fmt(val, decimals = 4) {
+  return Number(val).toFixed(decimals);
+}
+
+// ═══════════════════ PLOTLY HELPERS ═══════════════════
+
+function getPlotlyConfig() {
+  return {
+    editable: true,
+    displayModeBar: true,
+    displaylogo: false,
+    showEditInChartStudio: false,
+    modeBarButtonsToAdd: ['drawline','drawopenpath','drawclosedpath','drawcircle','drawrect','eraseshape'],
+    toImageButtonOptions: { format: 'png', scale: 3 },
+    responsive: true
+  };
+}
+
+function isDark() { return document.documentElement.getAttribute('data-theme') !== 'light'; }
+
+function getBaseLayout(title, xTitle, yTitle) {
+  const dk = isDark();
+  const textColor = dk ? '#F1F5F9' : '#0F172A';
+  const gridColor = dk ? '#334155' : '#CBD5E1';
+  const bgColor = dk ? '#1E293B' : '#FFFFFF';
+  return {
+    title: { text: title, font: { size: 14, color: textColor } },
+    template: dk ? 'plotly_dark' : 'plotly_white',
+    paper_bgcolor: bgColor,
+    plot_bgcolor: bgColor,
+    hovermode: 'closest',
+    dragmode: 'zoom',
+    editable: true,
+    font: { color: textColor, size: 12 },
+    legend: { bgcolor: 'rgba(0,0,0,0)', font: { color: textColor } },
+    modebar: { orientation: 'v', bgcolor: 'rgba(0,0,0,0)' },
+    margin: { l: 60, r: 30, t: 50, b: 55 },
+    xaxis: {
+      title: { text: xTitle, font: { size: 12 } },
+      fixedrange: false, showspikes: true, spikemode: 'across',
+      spikesnap: 'cursor', spikecolor: '#6366F1', spikedash: 'dot',
+      gridcolor: gridColor, zerolinecolor: gridColor, color: textColor
+    },
+    yaxis: {
+      title: { text: yTitle, font: { size: 12 } },
+      fixedrange: false, showspikes: true, spikemode: 'across',
+      spikesnap: 'cursor', spikecolor: '#6366F1', spikedash: 'dot',
+      gridcolor: gridColor, zerolinecolor: gridColor, color: textColor
+    },
+    transition: { duration: 500, easing: 'cubic-in-out' }
+  };
+}
+
+function plotOrReact(divId, traces, layout, config) {
+  const el = document.getElementById(divId);
+  if (!el) return;
+  if (chartInitialized[divId]) {
+    Plotly.react(divId, traces, layout, config);
+  } else {
+    Plotly.newPlot(divId, traces, layout, config);
+    chartInitialized[divId] = true;
+  }
+}
+
+// ═══════════════════ TABLE GENERATION ═══════════════════
+
+function buildTable(secIdx) {
+  const sec = SECTIONS[secIdx];
+  const table = document.getElementById(`table-${secIdx}`);
+  let html = '<thead><tr><th>Time (s)</th>';
+  sec.conditions.forEach(c => { html += `<th>${c}</th>`; });
+  html += '</tr></thead><tbody>';
+  TIMES.forEach((t, ri) => {
+    html += `<tr><td class="time-cell">${t}s</td>`;
+    sec.conditions.forEach((c, ci) => {
+      html += `<td><input type="text" data-sec="${secIdx}" data-row="${ri}" data-col="${ci}" inputmode="decimal" autocomplete="off"></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+
+  // Attach events
+  const inputs = table.querySelectorAll('input');
+  inputs.forEach(inp => {
+    inp.addEventListener('input', () => onCellInput(secIdx));
+    inp.addEventListener('blur', e => formatCell(e.target));
+    inp.addEventListener('keydown', e => handleTableKey(e, secIdx));
+    inp.addEventListener('paste', e => handlePaste(e, secIdx));
+  });
+}
+
+function formatCell(inp) {
+  const val = parseFloat(inp.value);
+  if (inp.value.trim() === '') { inp.classList.remove('invalid'); return; }
+  if (isNaN(val) || val < 0 || val > 3) {
+    inp.classList.add('invalid');
+    inp.title = 'Must be 0.000–3.000';
+  } else {
+    inp.classList.remove('invalid');
+    inp.title = '';
+    inp.value = val.toFixed(4);
+  }
+}
+
+function handleTableKey(e, secIdx) {
+  const inp = e.target;
+  const row = parseInt(inp.dataset.row);
+  const col = parseInt(inp.dataset.col);
+  const sec = SECTIONS[secIdx];
+  const nCols = sec.conditions.length;
+  const nRows = TIMES.length;
+  let nr = row, nc = col;
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    if (e.shiftKey) { nc--; if (nc < 0) { nc = nCols - 1; nr--; } }
+    else { nc++; if (nc >= nCols) { nc = 0; nr++; } }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    nr = e.shiftKey ? row - 1 : row + 1;
+  } else if (e.key === 'ArrowUp') { e.preventDefault(); nr--; }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); nr++; }
+  else if (e.key === 'ArrowLeft' && inp.selectionStart === 0) { e.preventDefault(); nc--; }
+  else if (e.key === 'ArrowRight' && inp.selectionStart === inp.value.length) { e.preventDefault(); nc++; }
+  else return;
+
+  nr = Math.max(0, Math.min(nRows - 1, nr));
+  nc = Math.max(0, Math.min(nCols - 1, nc));
+  const target = document.querySelector(`#table-${secIdx} input[data-row="${nr}"][data-col="${nc}"]`);
+  if (target) { target.focus(); target.select(); }
+}
+
+function handlePaste(e, secIdx) {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  const rows = text.trim().split('\n').map(r => r.split('\t'));
+  const inp = e.target;
+  const startRow = parseInt(inp.dataset.row);
+  const startCol = parseInt(inp.dataset.col);
+  const sec = SECTIONS[secIdx];
+
+  rows.forEach((cells, ri) => {
+    cells.forEach((val, ci) => {
+      const tr = startRow + ri;
+      const tc = startCol + ci;
+      if (tr < TIMES.length && tc < sec.conditions.length) {
+        const target = document.querySelector(`#table-${secIdx} input[data-row="${tr}"][data-col="${tc}"]`);
+        if (target) { target.value = val.trim(); formatCell(target); }
+      }
+    });
+  });
+  onCellInput(secIdx);
+}
+
+function getTableData(secIdx) {
+  const sec = SECTIONS[secIdx];
+  const data = [];
+  for (let ci = 0; ci < sec.conditions.length; ci++) {
+    const vals = [];
+    for (let ri = 0; ri < TIMES.length; ri++) {
+      const inp = document.querySelector(`#table-${secIdx} input[data-row="${ri}"][data-col="${ci}"]`);
+      vals.push(inp ? inp.value : '');
+    }
+    data.push(vals);
+  }
+  return data;
+}
+
+function loadExample(secIdx) {
+  const data = EXAMPLE_DATA[secIdx];
+  data.forEach((series, ci) => {
+    series.forEach((val, ri) => {
+      const inp = document.querySelector(`#table-${secIdx} input[data-row="${ri}"][data-col="${ci}"]`);
+      if (inp) { inp.value = val.toFixed(4); inp.classList.remove('invalid'); }
+    });
+  });
+  onCellInput(secIdx);
+  showToast('Example data loaded');
+}
+
+function clearData(secIdx) {
+  document.querySelectorAll(`#table-${secIdx} input`).forEach(inp => {
+    inp.value = ''; inp.classList.remove('invalid');
+  });
+  onCellInput(secIdx);
+  showToast('Data cleared');
+}
+
+// ═══════════════════ RECALCULATION ENGINE ═══════════════════
+
+function onCellInput(secIdx) {
+  const tableData = getTableData(secIdx);
+  const sec = SECTIONS[secIdx];
+  const velocities = [];
+
+  tableData.forEach((colVals, ci) => {
+    const v = calcVelocity(colVals, TIMES);
+    velocities.push(v);
+  });
+
+  renderAbsChart(secIdx, tableData, velocities);
+  renderVelChart(secIdx, velocities);
+  renderVelSummary(secIdx, velocities);
+
+  if (secIdx === 1) {
+    renderMMChart(velocities);
+    renderLBChart(velocities);
+    renderKineticCards(velocities);
+  }
+}
+
+// ═══════════════════ ABSORBANCE VS TIME CHART ═══════════════════
+
+function renderAbsChart(secIdx, tableData, velocities) {
+  const sec = SECTIONS[secIdx];
+  const divId = `chart-abs-${secIdx}`;
+  const traces = [];
+  const annotations = [];
+  const settings = getSettings(divId);
+
+  sec.conditions.forEach((cond, ci) => {
+    const yVals = tableData[ci].map(v => parseFloat(v));
+    const valid = yVals.some(v => !isNaN(v));
+    if (!valid) return;
+    const clr = settings.colors ? settings.colors[ci] : COLORS[ci % COLORS.length];
+    const markerSize = settings.pointSize || 7;
+    const lineWidth = settings.lineWidth || 2;
+
+    // Data trace
+    traces.push({
+      x: TIMES, y: yVals, mode: 'lines+markers', name: cond,
+      marker: { color: clr, size: markerSize },
+      line: { color: clr, width: lineWidth },
+      hovertemplate: 'Time: %{x} s<br>Absorbance: %{y:.4f}<extra>' + cond + '</extra>'
+    });
+
+    // Trendline
+    const vel = velocities[ci];
+    if (vel && settings.showTrendlines !== false) {
+      const yPred = TIMES.map(t => vel.predictY(t));
+      traces.push({
+        x: TIMES, y: yPred, mode: 'lines', name: cond + ' fit',
+        line: { color: clr, width: 1, dash: 'dash' },
+        showlegend: false,
+        hovertemplate: 'Time: %{x} s<br>Fit: %{y:.4f}<extra></extra>'
+      });
+
+      if (settings.showAnnotations !== false) {
+        annotations.push({
+          x: TIMES[TIMES.length - 1], y: yPred[yPred.length - 1],
+          text: `y=${sigFigs(vel.slope,3)}x+${sigFigs(vel.intercept,4)} R²=${fmt(vel.r2,4)}`,
+          showarrow: true, arrowhead: 0, ax: 30, ay: -20 * (ci + 1),
+          font: { size: settings.fontSize || 10, color: clr },
+          bgcolor: isDark() ? 'rgba(30,41,59,.85)' : 'rgba(255,255,255,.85)',
+          bordercolor: clr, borderwidth: 1, borderpad: 3
+        });
+      }
+    }
+  });
+
+  const layout = getBaseLayout(
+    settings.title || `Absorbance vs Time — ${sec.name}`,
+    settings.xLabel || 'Time (s)',
+    settings.yLabel || 'Absorbance (A₂₄₀)'
+  );
+  layout.annotations = annotations;
+  if (settings.fontSize) layout.font = { ...layout.font, size: settings.fontSize };
+
+  plotOrReact(divId, traces, layout, getPlotlyConfig());
+  buildSettingsPanel(divId, sec.conditions, secIdx);
+}
+
+// ═══════════════════ VELOCITY BAR CHART ═══════════════════
+
+function renderVelChart(secIdx, velocities) {
+  const sec = SECTIONS[secIdx];
+  const divId = `chart-vel-${secIdx}`;
+  const settings = getSettings(divId);
+  const colors = GRADIENT_COLORS[secIdx];
+
+  const labels = sec.conditions;
+  const vals = velocities.map(v => v ? v.velocityMM : 0);
+  const markerColors = labels.map((_, i) => {
+    if (settings.colors && settings.colors[i]) return settings.colors[i];
+    return colors[i % colors.length];
+  });
+
+  const traces = [
+    {
+      x: labels, y: vals, type: 'bar', name: 'Velocity',
+      marker: { color: markerColors, line: { color: markerColors.map(c => c), width: 1 } },
+      hovertemplate: 'Condition: %{x}<br>Velocity: %{y:.5f} mM/min<extra></extra>'
+    },
+    {
+      x: labels, y: vals, mode: 'markers', type: 'scatter', name: 'Data Points',
+      marker: { color: '#fff', size: settings.pointSize || 8, line: { color: markerColors, width: 2 } },
+      hovertemplate: 'Condition: %{x}<br>Velocity: %{y:.5f} mM/min<extra></extra>'
+    }
+  ];
+
+  const xLabel = secIdx === 1 ? '[S] (mM)' : sec.xLabel;
+  const layout = getBaseLayout(
+    settings.title || `Velocity vs ${sec.xLabel}`,
+    settings.xLabel || xLabel,
+    settings.yLabel || 'Velocity (mM/min)'
+  );
+
+  plotOrReact(divId, traces, layout, getPlotlyConfig());
+  buildSettingsPanel(divId, sec.conditions, secIdx);
+}
+
+// ═══════════════════ MICHAELIS-MENTEN CHART (Section 2) ═══════════════════
+
+function renderMMChart(velocities) {
+  const divId = 'chart-mm-1';
+  const settings = getSettings(divId);
+  const sVals = SECTIONS[1].sValues;
+  const vVals = velocities.map(v => v ? v.velocityMM : 0);
+  const validPairs = sVals.map((s, i) => ({ s, v: vVals[i] })).filter(p => p.v > 0);
+
+  if (validPairs.length < 2) {
+    plotOrReact(divId, [], getBaseLayout('Michaelis-Menten — Need ≥2 data points', '[S] (mM)', 'V (mM/min)'), getPlotlyConfig());
+    return;
+  }
+
+  const sArr = validPairs.map(p => p.s);
+  const vArr = validPairs.map(p => p.v);
+
+  // Levenberg-Marquardt fit
+  const fit = levenbergMarquardt(sArr, vArr);
+  const Vmax = fit.Vmax;
+  const Km = fit.Km;
+
+  // Smooth curve
+  const sMax = Math.max(...sArr) * 1.3;
+  const smoothS = Array.from({ length: 50 }, (_, i) => (i + 1) * sMax / 50);
+  const smoothV = smoothS.map(s => (Vmax * s) / (Km + s));
+
+  const markerSize = settings.pointSize || 10;
+  const lineWidth = settings.lineWidth || 2.5;
+
+  const traces = [
+    {
+      x: sArr, y: vArr, mode: 'markers', name: 'Observed',
+      marker: { color: '#6366F1', size: markerSize, line: { color: '#fff', width: 1 } },
+      hovertemplate: '[S]: %{x} mM<br>V: %{y:.5f} mM/min<extra></extra>'
+    },
+    {
+      x: smoothS, y: smoothV, mode: 'lines', name: 'MM Fit',
+      line: { color: '#10B981', width: lineWidth },
+      hovertemplate: '[S]: %{x:.1f} mM<br>V (fit): %{y:.5f} mM/min<extra></extra>'
+    }
+  ];
+
+  const layout = getBaseLayout(
+    settings.title || 'Michaelis-Menten Plot',
+    settings.xLabel || '[S] (mM)',
+    settings.yLabel || 'V (mM/min)'
+  );
+
+  // Draggable shapes
+  layout.shapes = [
+    {
+      type: 'line', x0: Km, x1: Km, y0: 0, y1: Vmax / 2,
+      line: { color: '#F59E0B', width: 2, dash: 'dash' }, editable: true
+    },
+    {
+      type: 'line', x0: 0, x1: Km, y0: Vmax / 2, y1: Vmax / 2,
+      line: { color: '#EF4444', width: 2, dash: 'dash' }, editable: true
+    }
+  ];
+
+  if (settings.showAnnotations !== false) {
+    layout.annotations = [{
+      x: sMax * 0.65, y: Vmax * 0.92,
+      text: `V<sub>max</sub> = ${sigFigs(Vmax)} mM/min | K<sub>m</sub> = ${sigFigs(Km)} mM`,
+      showarrow: false,
+      font: { size: settings.fontSize || 12, color: '#F1F5F9' },
+      bgcolor: isDark() ? 'rgba(30,41,59,.9)' : 'rgba(255,255,255,.9)',
+      bordercolor: '#6366F1', borderwidth: 1, borderpad: 5
+    }];
+  }
+
+  plotOrReact(divId, traces, layout, getPlotlyConfig());
+  buildSettingsPanel(divId, ['Observed', 'MM Fit'], 1);
+}
+
+// ═══════════════════ LINEWEAVER-BURK CHART (Section 2) ═══════════════════
+
+function renderLBChart(velocities) {
+  const divId = 'chart-lb-1';
+  const settings = getSettings(divId);
+  const sVals = SECTIONS[1].sValues;
+  const vVals = velocities.map(v => v ? v.velocityMM : 0);
+  const validPairs = sVals.map((s, i) => ({ s, v: vVals[i] })).filter(p => p.v > 0);
+
+  if (validPairs.length < 2) {
+    plotOrReact(divId, [], getBaseLayout('Lineweaver-Burk — Need ≥2 data points', '1/[S] (1/mM)', '1/V (min/mM)'), getPlotlyConfig());
+    return;
+  }
+
+  const invS = validPairs.map(p => 1 / p.s);
+  const invV = validPairs.map(p => 1 / p.v);
+
+  const reg = linearRegression(invS, invV);
+  const slope = reg.slope;
+  const intercept = reg.intercept;
+  const Vmax_lb = 1 / intercept;
+  const Km_lb = slope * Vmax_lb;
+  const xIntercept = -1 / Km_lb;
+
+  // Extended regression line into negative x
+  const xMin = xIntercept * 1.3;
+  const xMax = Math.max(...invS) * 1.2;
+  const lineX = [xMin, 0, ...invS, xMax];
+  lineX.sort((a, b) => a - b);
+  const lineY = lineX.map(x => reg.predictY(x));
+
+  const markerSize = settings.pointSize || 10;
+  const lineWidth = settings.lineWidth || 2;
+
+  const traces = [
+    {
+      x: invS, y: invV, mode: 'markers', name: '1/V vs 1/[S]',
+      marker: { color: '#EF4444', size: markerSize, line: { color: '#fff', width: 1 } },
+      hovertemplate: '1/[S]: %{x:.4f} 1/mM<br>1/V: %{y:.4f} min/mM<extra></extra>'
+    },
+    {
+      x: lineX, y: lineY, mode: 'lines', name: 'Regression',
+      line: { color: '#6366F1', width: lineWidth },
+      hovertemplate: '1/[S]: %{x:.4f} 1/mM<br>1/V: %{y:.4f} min/mM<extra></extra>'
+    }
+  ];
+
+  const layout = getBaseLayout(
+    settings.title || 'Lineweaver-Burk (Double Reciprocal) Plot',
+    settings.xLabel || '1/[S] (1/mM)',
+    settings.yLabel || '1/V (min/mM)'
+  );
+
+  const annotations = [];
+  if (settings.showAnnotations !== false) {
+    annotations.push(
+      {
+        x: 0, y: intercept,
+        text: `y-int = 1/V<sub>max</sub> = ${sigFigs(intercept)}`,
+        showarrow: true, arrowhead: 2, ax: 50, ay: -30,
+        font: { size: settings.fontSize || 10, color: '#10B981' },
+        bgcolor: isDark() ? 'rgba(30,41,59,.9)' : 'rgba(255,255,255,.9)',
+        bordercolor: '#10B981', borderwidth: 1, borderpad: 3
+      },
+      {
+        x: xIntercept, y: 0,
+        text: `x-int = −1/K<sub>m</sub> = ${sigFigs(xIntercept)}`,
+        showarrow: true, arrowhead: 2, ax: -60, ay: 30,
+        font: { size: settings.fontSize || 10, color: '#F59E0B' },
+        bgcolor: isDark() ? 'rgba(30,41,59,.9)' : 'rgba(255,255,255,.9)',
+        bordercolor: '#F59E0B', borderwidth: 1, borderpad: 3
+      },
+      {
+        x: (xMax + Math.max(...invS)) / 2, y: reg.predictY((xMax + Math.max(...invS)) / 2) * 1.05,
+        text: `1/V = ${sigFigs(slope)}·(1/[S]) + ${sigFigs(intercept)} | R²=${fmt(reg.r2)}`,
+        showarrow: false,
+        font: { size: settings.fontSize || 10, color: '#6366F1' },
+        bgcolor: isDark() ? 'rgba(30,41,59,.85)' : 'rgba(255,255,255,.85)',
+        bordercolor: '#6366F1', borderwidth: 1, borderpad: 4
+      }
+    );
+  }
+  layout.annotations = annotations;
+
+  // Zero lines
+  layout.shapes = [
+    { type: 'line', x0: 0, x1: 0, y0: Math.min(...lineY) * 0.9, y1: Math.max(...lineY) * 1.1, line: { color: isDark() ? '#475569' : '#94A3B8', width: 1, dash: 'dot' } }
+  ];
+
+  plotOrReact(divId, traces, layout, getPlotlyConfig());
+  buildSettingsPanel(divId, ['Data', 'Regression'], 1);
+}
+
+// ═══════════════════ KINETIC PARAMETER CARDS (Section 2) ═══════════════════
+
+function renderKineticCards(velocities) {
+  const sVals = SECTIONS[1].sValues;
+  const vVals = velocities.map(v => v ? v.velocityMM : 0);
+  const validPairs = sVals.map((s, i) => ({ s, v: vVals[i] })).filter(p => p.v > 0);
+
+  const container = document.getElementById('kinetic-cards-1');
+  if (validPairs.length < 2) {
+    container.innerHTML = '<p style="color:var(--text-dim);font-size:.85rem">Enter data in at least 2 conditions to calculate kinetic parameters.</p>';
+    return;
+  }
+
+  const sArr = validPairs.map(p => p.s);
+  const vArr = validPairs.map(p => p.v);
+
+  // MM fit
+  const mmFit = levenbergMarquardt(sArr, vArr);
+  // LB fit
+  const invS = validPairs.map(p => 1 / p.s);
+  const invV = validPairs.map(p => 1 / p.v);
+  const lbReg = linearRegression(invS, invV);
+  const lbVmax = 1 / lbReg.intercept;
+  const lbKm = lbReg.slope * lbVmax;
+
+  const kmColor = mmFit.Km < 50 ? 'color-green' : mmFit.Km < 100 ? 'color-yellow' : 'color-red';
+  const r2Color = lbReg.r2 >= 0.99 ? 'color-green' : lbReg.r2 >= 0.95 ? 'color-yellow' : 'color-red';
+
+  container.innerHTML = `
+    <div class="result-card">
+      <div class="label">K<sub>m</sub> (MM Fit)</div>
+      <div class="value ${kmColor}">${sigFigs(mmFit.Km)}</div>
+      <div class="unit">mM</div>
+    </div>
+    <div class="result-card">
+      <div class="label">V<sub>max</sub> (MM Fit)</div>
+      <div class="value" style="color:var(--accent)">${sigFigs(mmFit.Vmax)}</div>
+      <div class="unit">mM/min</div>
+    </div>
+    <div class="result-card">
+      <div class="label">K<sub>m</sub> (LB)</div>
+      <div class="value ${kmColor}">${sigFigs(lbKm)}</div>
+      <div class="unit">mM</div>
+    </div>
+    <div class="result-card">
+      <div class="label">V<sub>max</sub> (LB)</div>
+      <div class="value" style="color:var(--accent)">${sigFigs(lbVmax)}</div>
+      <div class="unit">mM/min</div>
+    </div>
+    <div class="result-card">
+      <div class="label">R² (LB)</div>
+      <div class="value ${r2Color}">${fmt(lbReg.r2)}</div>
+      <div class="unit">—</div>
+    </div>
+    <div class="result-card">
+      <div class="label">LB Equation</div>
+      <div class="value" style="font-size:.75rem;color:var(--text)">${sigFigs(lbReg.slope)}·(1/[S]) + ${sigFigs(lbReg.intercept)}</div>
+      <div class="unit">1/V = ...</div>
+    </div>
+  `;
+}
+
+// ═══════════════════ VELOCITY SUMMARY TABLE ═══════════════════
+
+function renderVelSummary(secIdx, velocities) {
+  const sec = SECTIONS[secIdx];
+  const container = document.getElementById(`vel-summary-${secIdx}`);
+  const maxV = Math.max(...velocities.map(v => v ? v.velocityMM : 0), 1e-10);
+
+  let html = '<table class="vel-table"><thead><tr><th>Condition</th><th>|Slope| (ΔAbs/s)</th><th>V (ΔAbs/min)</th><th>V (mM/min)</th><th>R²</th></tr></thead><tbody>';
+  sec.conditions.forEach((cond, ci) => {
+    const v = velocities[ci];
+    if (!v) {
+      html += `<tr><td>${cond}</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    } else {
+      const pct = (v.velocityMM / maxV) * 100;
+      const r2c = v.r2 >= 0.99 ? 'color-green' : v.r2 >= 0.95 ? 'color-yellow' : 'color-red';
+      html += `<tr>
+        <td><strong>${cond}</strong></td>
+        <td>${sigFigs(Math.abs(v.slope))}</td>
+        <td>${sigFigs(v.velocityAbs)}</td>
+        <td class="bar-cell"><span class="mini-bar" style="width:${pct}%;background:${COLORS[ci % COLORS.length]}"></span><span style="position:relative">${sigFigs(v.velocityMM)}</span></td>
+        <td class="${r2c}">${fmt(v.r2)}</td>
+      </tr>`;
+    }
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ═══════════════════ CHART SETTINGS PANEL ═══════════════════
+
+function getSettings(divId) {
+  if (!chartSettings[divId]) {
+    chartSettings[divId] = {
+      title: '', xLabel: '', yLabel: '',
+      showTrendlines: true, showAnnotations: true,
+      colors: null, pointSize: null, lineWidth: null, fontSize: null
+    };
+  }
+  return chartSettings[divId];
+}
+
+function buildSettingsPanel(divId, seriesNames, secIdx) {
+  const panelId = `settings-${divId.replace('chart-', '')}`;
+  const panel = document.getElementById(panelId);
+  if (!panel || panel.dataset.built === 'true') return;
+  panel.dataset.built = 'true';
+  const s = getSettings(divId);
+
+  let colorInputs = '';
+  seriesNames.forEach((name, i) => {
+    const defaultColor = COLORS[i % COLORS.length];
+    colorInputs += `<span class="color-swatch"><input type="color" value="${defaultColor}" data-chart="${divId}" data-cidx="${i}" onchange="onSettingChange('${divId}',${secIdx})"> ${name}</span>`;
+  });
+
+  panel.innerHTML = `
+    <div class="setting-row">
+      <label>Title</label>
+      <input type="text" placeholder="Chart title" data-field="title" data-chart="${divId}" oninput="onSettingChange('${divId}',${secIdx})">
+    </div>
+    <div class="setting-row">
+      <label>X Axis</label>
+      <input type="text" placeholder="X axis label" data-field="xLabel" data-chart="${divId}" oninput="onSettingChange('${divId}',${secIdx})">
+    </div>
+    <div class="setting-row">
+      <label>Y Axis</label>
+      <input type="text" placeholder="Y axis label" data-field="yLabel" data-chart="${divId}" oninput="onSettingChange('${divId}',${secIdx})">
+    </div>
+    <div class="setting-row">
+      <label>Trendlines</label>
+      <input type="checkbox" checked data-field="showTrendlines" data-chart="${divId}" onchange="onSettingChange('${divId}',${secIdx})">
+      <label style="min-width:auto">Annotations</label>
+      <input type="checkbox" checked data-field="showAnnotations" data-chart="${divId}" onchange="onSettingChange('${divId}',${secIdx})">
+    </div>
+    <div class="setting-row">
+      <label>Point Size</label>
+      <input type="range" min="4" max="12" value="7" data-field="pointSize" data-chart="${divId}" oninput="onSettingChange('${divId}',${secIdx})">
+    </div>
+    <div class="setting-row">
+      <label>Line Width</label>
+      <input type="range" min="1" max="4" value="2" step="0.5" data-field="lineWidth" data-chart="${divId}" oninput="onSettingChange('${divId}',${secIdx})">
+    </div>
+    <div class="setting-row">
+      <label>Font Size</label>
+      <select data-field="fontSize" data-chart="${divId}" onchange="onSettingChange('${divId}',${secIdx})">
+        ${[10,11,12,13,14,15,16,17,18].map(s => `<option value="${s}" ${s===12?'selected':''}>${s}px</option>`).join('')}
+      </select>
+    </div>
+    <div class="setting-row">
+      <label>Colors</label>
+      <div class="color-row">${colorInputs}</div>
+    </div>
+  `;
+}
+
+function onSettingChange(divId, secIdx) {
+  const s = getSettings(divId);
+  const panelId = `settings-${divId.replace('chart-', '')}`;
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+
+  panel.querySelectorAll('[data-field]').forEach(inp => {
+    const field = inp.dataset.field;
+    if (inp.type === 'checkbox') s[field] = inp.checked;
+    else if (inp.type === 'range') s[field] = parseFloat(inp.value);
+    else if (inp.tagName === 'SELECT') s[field] = parseInt(inp.value);
+    else s[field] = inp.value;
+  });
+
+  // Colors
+  const colorInputs = panel.querySelectorAll('input[type="color"]');
+  if (colorInputs.length) {
+    s.colors = [];
+    colorInputs.forEach(ci => { s.colors[parseInt(ci.dataset.cidx)] = ci.value; });
+  }
+
+  onCellInput(secIdx);
+}
+
+function toggleSettings(btn) {
+  const panel = btn.nextElementSibling;
+  panel.classList.toggle('open');
+}
+
+// ═══════════════════ EXPORT FUNCTIONS ═══════════════════
+
+function exportChart(divId, format) {
+  const opts = format === 'svg'
+    ? { format: 'svg', width: 1200, height: 700 }
+    : { format: 'png', scale: 3, width: 1200, height: 700 };
+  Plotly.downloadImage(divId, opts);
+}
+
+function exportCSV(secIdx, type) {
+  const sec = SECTIONS[secIdx];
+  let csvContent = '';
+
+  if (type === 'abs') {
+    csvContent = 'Time (s),' + sec.conditions.join(',') + '\n';
+    const data = getTableData(secIdx);
+    TIMES.forEach((t, ri) => {
+      csvContent += t + ',' + data.map(col => col[ri]).join(',') + '\n';
+    });
+  } else if (type === 'vel') {
+    csvContent = 'Condition,Velocity (mM/min),R²\n';
+    const data = getTableData(secIdx);
+    sec.conditions.forEach((cond, ci) => {
+      const v = calcVelocity(data[ci], TIMES);
+      csvContent += `"${cond}",${v ? sigFigs(v.velocityMM) : ''},${v ? fmt(v.r2) : ''}\n`;
+    });
+  } else if (type === 'mm' || type === 'lb') {
+    const data = getTableData(1);
+    const sVals = SECTIONS[1].sValues;
+    if (type === 'mm') {
+      csvContent = '[S] (mM),V (mM/min)\n';
+      sVals.forEach((s, i) => {
+        const v = calcVelocity(data[i], TIMES);
+        csvContent += `${s},${v ? sigFigs(v.velocityMM) : ''}\n`;
+      });
+    } else {
+      csvContent = '1/[S] (1/mM),1/V (min/mM)\n';
+      sVals.forEach((s, i) => {
+        const v = calcVelocity(data[i], TIMES);
+        if (v && v.velocityMM > 0) csvContent += `${sigFigs(1/s)},${sigFigs(1/v.velocityMM)}\n`;
+      });
+    }
+  }
+
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `BIO310_Section${secIdx+1}_${type}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('CSV downloaded');
+}
+
+function copyAllResults() {
+  const results = {};
+  SECTIONS.forEach((sec, secIdx) => {
+    const data = getTableData(secIdx);
+    results[sec.name] = {};
+    sec.conditions.forEach((cond, ci) => {
+      const v = calcVelocity(data[ci], TIMES);
+      results[sec.name][cond] = v ? {
+        velocityMM: parseFloat(sigFigs(v.velocityMM)),
+        velocityAbs: parseFloat(sigFigs(v.velocityAbs)),
+        r2: parseFloat(fmt(v.r2)),
+        slope: v.slope,
+        intercept: v.intercept
+      } : null;
+    });
+
+    if (secIdx === 1) {
+      const sVals = sec.sValues;
+      const vVals = data.map((col, i) => { const v = calcVelocity(col, TIMES); return v ? v.velocityMM : 0; });
+      const validPairs = sVals.map((s, i) => ({ s, v: vVals[i] })).filter(p => p.v > 0);
+      if (validPairs.length >= 2) {
+        const fit = levenbergMarquardt(validPairs.map(p => p.s), validPairs.map(p => p.v));
+        results['Kinetic Parameters'] = {
+          Km_MM: parseFloat(sigFigs(fit.Km)),
+          Vmax_MM: parseFloat(sigFigs(fit.Vmax)),
+          converged: fit.converged
+        };
+      }
+    }
+  });
+
+  navigator.clipboard.writeText(JSON.stringify(results, null, 2)).then(() => {
+    showToast('Results copied to clipboard');
+  }).catch(() => {
+    showToast('Copy failed — check permissions');
+  });
+}
+
+// ═══════════════════ THEME TOGGLE ═══════════════════
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  // Re-render all charts in active section
+  chartInitialized = {};
+  document.querySelectorAll('.chart-settings').forEach(p => p.dataset.built = '');
+  const activeIdx = getActiveSection();
+  onCellInput(activeIdx);
+  showToast(`Switched to ${next} theme`);
+}
+
+// ═══════════════════ TAB NAVIGATION ═══════════════════
+
+function switchTab(idx) {
+  document.querySelectorAll('.nav-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === idx));
+  // Trigger re-render for the newly active section (Plotly needs visible container)
+  setTimeout(() => {
+    chartInitialized[`chart-abs-${idx}`] = false;
+    chartInitialized[`chart-vel-${idx}`] = false;
+    if (idx === 1) {
+      chartInitialized['chart-mm-1'] = false;
+      chartInitialized['chart-lb-1'] = false;
+    }
+    document.querySelectorAll(`#section-${idx} .chart-settings`).forEach(p => p.dataset.built = '');
+    onCellInput(idx);
+  }, 50);
+}
+
+function getActiveSection() {
+  const tabs = document.querySelectorAll('.nav-tab');
+  for (let i = 0; i < tabs.length; i++) {
+    if (tabs[i].classList.contains('active')) return i;
+  }
+  return 0;
+}
+
+// ═══════════════════ HELP MODAL ═══════════════════
+
+function openHelp() {
+  document.getElementById('help-modal').classList.add('open');
+}
+function closeHelp() {
+  document.getElementById('help-modal').classList.remove('open');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeHelp();
+});
+
+// ═══════════════════ TOAST ═══════════════════
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════ INITIALIZATION ═══════════════════
+
+function init() {
+  SECTIONS.forEach((sec, i) => {
+    buildTable(i);
+  });
+  // Initialize empty charts
+  SECTIONS.forEach((sec, i) => {
+    onCellInput(i);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
